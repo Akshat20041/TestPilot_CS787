@@ -1,6 +1,8 @@
-streamlit==1.29.0
-langchain==0.0.352
-langchain-groq==0.0.1
-python-dotenv==1.0.1
-pytest==8.0.0
-pytest-json-report==1.5.0
+streamlit>=1.34.0
+langchain>=0.2.14
+langchain-core>=0.2.23
+langchain-community>=0.2.7
+langchain-groq>=0.1.0
+python-dotenv>=1.0.1
+pytest>=8.0.0
+pytest-json-report>=1.5.0
