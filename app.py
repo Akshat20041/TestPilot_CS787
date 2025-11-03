@@ -20,19 +20,21 @@ llm = ChatGroq(model="qwen/qwen3-32b", temperature=0.2)
 prompt_template = """
 You are an AI that generates Python pytest test files.
 
-Task:
-- Given the README content below, write a single Python file named `test_generated.py`.
-- If the described functions do not exist, create simple placeholder implementations inside the same file.
-- Then write ONLY {num_tests} pytest test functions that validate the described functionality.
-- Output your result strictly inside:
+TASK:
+- Read the README below.
+- Write a single Python file named `test_generated.py`.
+- If described functions do not exist, create placeholder implementations inside it.
+- Then write exactly {num_tests} pytest test functions.
+- Return ONLY valid Python code between:
 <PYTEST_FILE>
 # your code here
 </PYTEST_FILE>
 
-Rules:
-- Output only valid Python code.
-- No markdown, no explanations.
-- The file must be directly runnable with pytest.
+❌ No markdown
+❌ No explanations
+❌ No <think> or reasoning text
+✅ Only valid, executable Python code
+
 README:
 {readme_content}
 """
@@ -45,31 +47,36 @@ chain = LLMChain(llm=llm, prompt=prompt)
 
 # --------------------- Helpers ---------------------------
 def extract_code(raw: str) -> str:
-    """Extract code inside <PYTEST_FILE>...</PYTEST_FILE>."""
-    m = re.search(r"<PYTEST_FILE>([\s\S]*?)</PYTEST_FILE>", raw, re.IGNORECASE)
-    if m:
-        return m.group(1).strip()
-    blocks = re.findall(r"```(?:python)?\s*([\s\S]*?)```", raw, flags=re.IGNORECASE)
-    if blocks:
-        return max(blocks, key=len).strip()
+    """Clean the LLM output and extract pure Python code."""
+    if not raw:
+        return ""
+
+    # Remove any hidden reasoning, think blocks, markdown fences
+    raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL | re.IGNORECASE)
+    raw = re.sub(r"```(?:python)?", "", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"```", "", raw)
+    raw = raw.strip()
+
+    # Extract between PYTEST_FILE tags if present
+    match = re.search(r"<PYTEST_FILE>([\s\S]*?)</PYTEST_FILE>", raw, re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+
+    # Otherwise return the cleaned text block
     return raw.strip()
 
 def run_pytest_json(test_file: str, timeout_sec: int = 60):
-    """Run pytest with JSON report."""
+    """Run pytest and parse JSON report."""
     cmd = ["pytest", test_file, "--disable-warnings", "--maxfail=10", "--json-report", "-q"]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_sec)
-    report_path = ".report.json"
     report = None
-    if os.path.exists(report_path):
-        try:
-            with open(report_path, "r", encoding="utf-8") as f:
-                report = json.load(f)
-        except Exception:
-            report = None
+    if os.path.exists(".report.json"):
+        with open(".report.json", "r", encoding="utf-8") as f:
+            report = json.load(f)
     return (proc.returncode == 0, report, proc.stdout, proc.stderr)
 
 def show_summary(report: dict, stdout: str, stderr: str):
-    """Display pytest summary in Streamlit."""
+    """Display pytest summary nicely."""
     st.subheader("📊 Pytest Results")
     tests = report.get("tests", []) if report else []
     summary = report.get("summary", {}) if report else {}
@@ -86,18 +93,15 @@ def show_summary(report: dict, stdout: str, stderr: str):
     col4.warning(f"Errors: **{errors}**")
 
     st.divider()
-    if tests:
-        st.subheader("🔍 Test Details")
-        for t in tests:
-            nodeid = t.get("nodeid", "unknown_test")
-            outcome = t.get("outcome", "unknown")
-            if outcome == "passed":
-                st.success(f"✅ {nodeid}")
-            elif outcome == "failed":
-                st.error(f"❌ {nodeid}")
-                longrepr = t.get("longrepr", "")
-                if longrepr:
-                    st.code(longrepr, language="bash")
+    for t in tests:
+        nodeid = t.get("nodeid", "")
+        outcome = t.get("outcome", "")
+        if outcome == "passed":
+            st.success(f"✅ {nodeid}")
+        elif outcome == "failed":
+            st.error(f"❌ {nodeid}")
+            if t.get("longrepr"):
+                st.code(t["longrepr"], language="bash")
 
     if stdout:
         st.subheader("🧾 Pytest Output")
@@ -133,9 +137,9 @@ if uploaded_file:
                 st.stop()
 
         code = extract_code(raw_response)
-        if "def test_" not in code:
-            st.error("No `test_` functions detected in the generated code.")
-            st.code(raw_response, language="text")
+        if not code.strip():
+            st.error("❌ No valid Python code extracted.")
+            st.code(raw_response)
             st.stop()
 
         with open("test_generated.py", "w", encoding="utf-8") as f:
@@ -148,7 +152,7 @@ if uploaded_file:
             try:
                 ok, report, stdout, stderr = run_pytest_json("test_generated.py", 90)
             except subprocess.TimeoutExpired:
-                st.error("Pytest timed out (90s).")
+                st.error("❌ Pytest timed out (90s).")
                 st.stop()
             except Exception as e:
                 st.error(f"Unexpected error: {e}")
@@ -157,7 +161,7 @@ if uploaded_file:
         if report:
             show_summary(report, stdout, stderr)
         else:
-            st.error("No pytest report generated.")
+            st.error("❌ No pytest report generated.")
             if stdout:
                 st.code(stdout, language="bash")
 else:
