@@ -4,9 +4,9 @@ import json
 import subprocess
 import streamlit as st
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
-from langchain.chains.llm import LLMChain
+from langchain.chains import LLMChain
+from langchain_groq import ChatGroq
 
 # ------------------------- Setup -------------------------
 load_dotenv()
