@@ -15,7 +15,7 @@ st.title("🧪 Generate & Check Pytest Tests from README")
 
 # --- LLM Setup ---
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "")
-llm = ChatGroq(model="mixtral-8x7b-32768", temperature=0.2)
+llm = ChatGroq(model="qwen/qwen3-32b", temperature=0.2)
 
 # --------------------- Prompt Template -------------------
 template = """
