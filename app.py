@@ -4,6 +4,8 @@ import json
 import subprocess
 import streamlit as st
 from dotenv import load_dotenv
+
+# --- LangChain Imports (new modular layout) ---
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import LLMChain
 from langchain_groq import ChatGroq
@@ -13,9 +15,9 @@ load_dotenv()
 st.set_page_config(page_title="Unit Test Generator", layout="wide")
 st.title("Generate & Check Pytest Tests from README")
 
-# LangChain / Groq
+# LangChain / Groq model setup
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "")
-llm = ChatGroq(model="qwen/qwen3-32b")  # you can switch models here
+llm = ChatGroq(model="qwen/qwen3-32b")  # Change model if desired
 
 # --------------------- Prompt Template -------------------
 prompt_template = """
@@ -39,7 +41,7 @@ chain = LLMChain(llm=llm, prompt=prompt)
 
 # --------------------- Helpers ---------------------------
 def extract_code(raw: str) -> str:
-    """Extract code inside <PYTEST_FILE>...</PYTEST_FILE>, else fallback to ```python``` blocks."""
+    """Extract code from <PYTEST_FILE>...</PYTEST_FILE> or code blocks."""
     m = re.search(r"<PYTEST_FILE>([\s\S]*?)</PYTEST_FILE>", raw, re.IGNORECASE)
     if m:
         return m.group(1).strip()
@@ -64,7 +66,7 @@ def ensure_min_tests(code: str, min_tests: int) -> int:
     return len(re.findall(r"^\s*def\s+test_", code, flags=re.M))
 
 def run_pytest_json(test_file: str, timeout_sec: int = 60):
-    """Run pytest with JSON report; returns (exit_ok, report_dict, stdout, stderr)."""
+    """Run pytest with JSON report."""
     cmd = ["pytest", test_file, "--disable-warnings", "--maxfail=10", "--json-report", "-q"]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_sec)
     report_path = ".report.json"
@@ -147,7 +149,7 @@ if uploaded_file:
 
         actual = ensure_min_tests(code, min_tests=num_tests)
         if actual == 0:
-            st.error("No `test_` functions detected in the generated code. Showing raw model output for debugging:")
+            st.error("No `test_` functions detected in generated code.")
             st.code(raw_response, language="text")
 
         test_path = "test_generated.py"
@@ -161,17 +163,17 @@ if uploaded_file:
             try:
                 ok, report, stdout, stderr = run_pytest_json(test_path, timeout_sec=90)
             except FileNotFoundError:
-                st.error("`pytest` or `pytest-json-report` not installed. Install with:\n\n`pip install pytest pytest-json-report`")
+                st.error("`pytest` or `pytest-json-report` not installed. Install via pip.")
                 st.stop()
             except subprocess.TimeoutExpired:
                 st.error("Pytest timed out (90s). Your tests may hang or be too slow.")
                 st.stop()
             except Exception as e:
-                st.error(f"Unexpected error while running pytest: {e}")
+                st.error(f"Unexpected error: {e}")
                 st.stop()
 
         if report is None:
-            st.error("Pytest did not produce a JSON report. Showing raw output:")
+            st.error("Pytest did not produce a JSON report.")
             if stdout:
                 st.code(stdout, language="bash")
             if stderr:
