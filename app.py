@@ -1,11 +1,3 @@
-# At top of app.py
-import langchain
-import streamlit as st
-st.write("langchain version:", langchain.__version__)
-
-# then
-from langchain.chains.llm import LLMChain
-
 import os
 import re
 import json
@@ -13,20 +5,19 @@ import subprocess
 import streamlit as st
 from dotenv import load_dotenv
 
-
-# --- LangChain Imports (new modular layout) ---
+# --- LangChain (modular imports) ---
 from langchain_core.prompts import PromptTemplate
-from langchain.chains import LLMChain
+from langchain_core.runnables import RunnableSequence
 from langchain_groq import ChatGroq
 
 # ------------------------- Setup -------------------------
 load_dotenv()
 st.set_page_config(page_title="Unit Test Generator", layout="wide")
-st.title("Generate & Check Pytest Tests from README")
+st.title("🧪 Generate & Check Pytest Tests from README")
 
-# LangChain / Groq model setup
+# --- Groq Model Setup ---
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "")
-llm = ChatGroq(model="qwen/qwen3-32b")  # Change model if desired
+llm = ChatGroq(model="qwen/qwen3-32b")
 
 # --------------------- Prompt Template -------------------
 prompt_template = """
@@ -46,11 +37,13 @@ prompt = PromptTemplate(
     input_variables=["readme_content", "num_tests"],
     template=prompt_template,
 )
-chain = LLMChain(llm=llm, prompt=prompt)
+
+# --- Define Runnable chain (prompt → model) ---
+chain = RunnableSequence(prompt | llm)
 
 # --------------------- Helpers ---------------------------
 def extract_code(raw: str) -> str:
-    """Extract code from <PYTEST_FILE>...</PYTEST_FILE> or code blocks."""
+    """Extract code inside <PYTEST_FILE>...</PYTEST_FILE> or ```python``` blocks."""
     m = re.search(r"<PYTEST_FILE>([\s\S]*?)</PYTEST_FILE>", raw, re.IGNORECASE)
     if m:
         return m.group(1).strip()
@@ -75,7 +68,7 @@ def ensure_min_tests(code: str, min_tests: int) -> int:
     return len(re.findall(r"^\s*def\s+test_", code, flags=re.M))
 
 def run_pytest_json(test_file: str, timeout_sec: int = 60):
-    """Run pytest with JSON report."""
+    """Run pytest with JSON report; returns (exit_ok, report_dict, stdout, stderr)."""
     cmd = ["pytest", test_file, "--disable-warnings", "--maxfail=10", "--json-report", "-q"]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_sec)
     report_path = ".report.json"
@@ -145,17 +138,17 @@ if uploaded_file:
     if st.button(run_button_label, type="primary"):
         with st.spinner("Generating tests with the LLM..."):
             try:
-                raw_response = chain.run(
-                    readme_content=readme_content,
-                    num_tests=num_tests,
-                )
+                raw_response = chain.invoke({
+                    "readme_content": readme_content,
+                    "num_tests": num_tests
+                })
             except Exception as e:
                 st.error(f"LLM generation error: {e}")
                 st.stop()
 
+        # Extract, limit, and validate tests
         code = extract_code(raw_response)
         code = keep_at_most_n_tests(code, n=num_tests)
-
         actual = ensure_min_tests(code, min_tests=num_tests)
         if actual == 0:
             st.error("No `test_` functions detected in generated code.")
@@ -172,13 +165,13 @@ if uploaded_file:
             try:
                 ok, report, stdout, stderr = run_pytest_json(test_path, timeout_sec=90)
             except FileNotFoundError:
-                st.error("`pytest` or `pytest-json-report` not installed. Install via pip.")
+                st.error("`pytest` or `pytest-json-report` not installed. Install with: pip install pytest pytest-json-report")
                 st.stop()
             except subprocess.TimeoutExpired:
                 st.error("Pytest timed out (90s). Your tests may hang or be too slow.")
                 st.stop()
             except Exception as e:
-                st.error(f"Unexpected error: {e}")
+                st.error(f"Unexpected error while running pytest: {e}")
                 st.stop()
 
         if report is None:
