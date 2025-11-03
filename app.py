@@ -138,10 +138,16 @@ if uploaded_file:
     if st.button(run_button_label, type="primary"):
         with st.spinner("Generating tests with the LLM..."):
             try:
-                raw_response = chain.invoke({
-                    "readme_content": readme_content,
-                    "num_tests": num_tests
+                raw_output = chain.invoke({
+                "readme_content": readme_content,
+                "num_tests": num_tests
                 })
+                # If the model returns a dict, extract the 'text' key; otherwise, keep it as string
+                if isinstance(raw_output, dict):
+                    raw_response = raw_output.get("text", "")
+                else:
+                    raw_response = str(raw_output)
+
             except Exception as e:
                 st.error(f"LLM generation error: {e}")
                 st.stop()
