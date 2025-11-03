@@ -1,9 +1,18 @@
+# At top of app.py
+import langchain
+import streamlit as st
+st.write("langchain version:", langchain.__version__)
+
+# then
+from langchain.chains.llm import LLMChain
+
 import os
 import re
 import json
 import subprocess
 import streamlit as st
 from dotenv import load_dotenv
+
 
 # --- LangChain Imports (new modular layout) ---
 from langchain_core.prompts import PromptTemplate
