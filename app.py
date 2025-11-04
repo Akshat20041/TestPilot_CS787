@@ -115,7 +115,7 @@ st.markdown("Upload a README, select number of tests, then generate.")
 
 left, right = st.columns([2, 1])
 with right:
-    num_tests = st.slider("Number of tests", 3, 8, 4)
+    num_tests = st.slider("Number of tests", 3,10,25)
     run_button_label = "🚀 Generate tests & Run pytest"
 
 uploaded_file = left.file_uploader("Upload README.md", type=["md", "txt"])
