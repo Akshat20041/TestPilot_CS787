@@ -1,0 +1,9 @@
+{
+  "error_pattern": "NameError",
+  "framework": "generic",
+  "error_example": "NameError: name 'my_helper' is not defined",
+  "solution": "The test is trying to use a function or variable that was not included in the combined test file. Ensure all necessary helper functions are provided along with the main functions to be tested, or that they are correctly imported.",
+  "fix_pattern": "Ensure all dependent functions are included in the source file or properly imported.",
+  "code_before": "def test_main_function():\n    # Assumes my_helper() is available, but it's not imported/provided\n    result = my_helper()\n    assert result",
+  "code_after": "# In the source file, not the test file\n\n# def my_helper():\n#     return True\n\n# def main_function():\n#     return my_helper()\n\n# The fix is to ensure my_helper is defined where main_function can access it."
+}

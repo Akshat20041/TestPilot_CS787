@@ -1,0 +1,9 @@
+{
+  "error_pattern": "AttributeError: 'NoneType' object has no attribute",
+  "framework": "generic",
+  "error_example": "AttributeError: 'NoneType' object has no attribute 'get'",
+  "solution": "The function returned `None` unexpectedly, but the test tried to access an attribute or method on it. Ensure the function has a return statement for all code paths, or add a check for `None` in the test before proceeding.",
+  "fix_pattern": "Add a check for `None` before accessing attributes: `assert result is not None`",
+  "code_before": "def test_my_function():\n    result = my_function_that_might_return_none()\n    assert result.get('key') == 'value'",
+  "code_after": "def test_my_function():\n    result = my_function_that_might_return_none()\n    assert result is not None, \"Function returned None unexpectedly\"\n    assert result.get('key') == 'value'"
+}

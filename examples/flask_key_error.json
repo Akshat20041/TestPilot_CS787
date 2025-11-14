@@ -1,0 +1,9 @@
+{
+  "error_pattern": "KeyError",
+  "framework": "flask",
+  "error_example": "KeyError: 'items'\nThe key 'items' was not found in the response data",
+  "solution": "For JSON responses from Flask routes, use response.get_json() to parse the JSON data, then access dictionary keys. Always check status code first.",
+  "fix_pattern": "data = response.get_json(); assert 'key' in data",
+  "code_before": "def test_get_items(client):\n    response = client.get('/items')\n    assert response['items'] is not None",
+  "code_after": "def test_get_items(client):\n    response = client.get('/items')\n    assert response.status_code == 200\n    data = response.get_json()\n    assert 'items' in data\n    assert isinstance(data['items'], list)"
+}

@@ -1,0 +1,9 @@
+{
+  "error_pattern": "AssertionError: assert 404 == 200",
+  "framework": "flask",
+  "error_example": "AssertionError: assert 404 == 200\nE       + where 404 = <Response 239 bytes [404 NOT FOUND]>.status_code",
+  "solution": "The test asserted a 200 OK status code, but the application returned a 404 Not Found. This usually means the route being tested does not exist or the URL is incorrect. Check the URL in the test.",
+  "fix_pattern": "Verify the URL in `client.get(URL)` matches a defined route in the Flask app.",
+  "code_before": "def test_route(client):\n    response = client.get('/wrong-url')\n    assert response.status_code == 200",
+  "code_after": "def test_route(client):\n    # Correct the URL to a valid one, e.g., '/'.\n    response = client.get('/')\n    assert response.status_code == 200"
+}

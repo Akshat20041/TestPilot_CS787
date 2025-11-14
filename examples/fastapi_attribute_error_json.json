@@ -1,0 +1,9 @@
+{
+  "error_pattern": "AttributeError: 'Response' object has no attribute 'get_json'",
+  "framework": "fastapi",
+  "error_example": "AttributeError: 'Response' object has no attribute 'get_json'",
+  "solution": "In FastAPI tests using TestClient, the response body is accessed with `response.json()`, not `response.get_json()` which is used in Flask.",
+  "fix_pattern": "Replace `response.get_json()` with `response.json()`",
+  "code_before": "from fastapi.testclient import TestClient\n\ndef test_read_main(client: TestClient):\n    response = client.get('/')\n    data = response.get_json() # Incorrect\n    assert data == {'msg': 'Hello World'}",
+  "code_after": "from fastapi.testclient import TestClient\n\ndef test_read_main(client: TestClient):\n    response = client.get('/')\n    assert response.status_code == 200\n    data = response.json() # Correct\n    assert data == {'msg': 'Hello World'}"
+}

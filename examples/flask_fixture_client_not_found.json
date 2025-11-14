@@ -1,0 +1,9 @@
+{
+  "error_pattern": "fixture 'client' not found",
+  "framework": "flask",
+  "error_example": "E       fixture 'client' not found\n>       available fixtures: cache, capfd, capfdbinary, caplog, capsys",
+  "solution": "All Flask test functions need 'client' parameter. The client fixture is provided by the test setup and allows testing HTTP routes.",
+  "fix_pattern": "Change 'def test_name():' to 'def test_name(client):'",
+  "code_before": "def test_hello():\n    result = hello()\n    assert result == 'Hello, World!'",
+  "code_after": "def test_hello(client):\n    response = client.get('/')\n    assert response.status_code == 200\n    assert b'Hello, World!' in response.data"
+}

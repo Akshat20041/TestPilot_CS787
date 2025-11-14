@@ -1,0 +1,9 @@
+{
+  "error_pattern": "takes 0 positional arguments but 1 was given",
+  "framework": "flask",
+  "error_example": "TypeError: hello() takes 0 positional arguments but 1 was given\nThe view function did not return a valid response",
+  "solution": "Don't call Flask route handlers directly. Flask routes are decorated functions that expect Flask's request context. Use client.get() or client.post() instead to properly test HTTP endpoints.",
+  "fix_pattern": "Replace direct function calls with client HTTP methods: client.get('/route') or client.post('/route', json=data)",
+  "code_before": "def test_hello(client):\n    result = hello()\n    assert result == 'Hello, World!'",
+  "code_after": "def test_hello(client):\n    response = client.get('/')\n    assert response.status_code == 200\n    assert b'Hello, World!' in response.data"
+}

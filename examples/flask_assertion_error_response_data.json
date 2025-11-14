@@ -1,0 +1,9 @@
+{
+  "error_pattern": "assert 'text' in <Response",
+  "framework": "flask",
+  "error_example": "AssertionError: assert 'Hello, World!' in <Response 13 bytes [200 OK]>\n+ where <Response 13 bytes [200 OK]> = client.get('/')",
+  "solution": "Flask responses are Response objects, not strings. Access the actual data using response.data (returns bytes) or response.get_json() (returns dict for JSON responses).",
+  "fix_pattern": "Use 'assert b\"text\" in response.data' for HTML/text or 'assert response.get_json()[\"key\"] == value' for JSON",
+  "code_before": "response = client.get('/')\nassert 'Hello, World!' in response",
+  "code_after": "response = client.get('/')\nassert response.status_code == 200\nassert b'Hello, World!' in response.data"
+}

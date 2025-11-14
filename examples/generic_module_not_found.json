@@ -1,0 +1,9 @@
+{
+  "error_pattern": "ModuleNotFoundError: No module named",
+  "framework": "generic",
+  "error_example": "ModuleNotFoundError: No module named 'requests'\nError: Cannot import name 'requests' from '<stdin>'",
+  "solution": "External packages like requests, urllib3, etc. should be removed from test files. Either mock the dependencies or ensure the function logic doesn't rely on external imports in the test environment.",
+  "fix_pattern": "Remove external package imports and mock if needed: 'from unittest.mock import Mock, patch'",
+  "code_before": "import requests\n\ndef test_api_call():\n    response = requests.get('http://example.com')\n    assert response.status_code == 200",
+  "code_after": "from unittest.mock import Mock, patch\n\ndef test_api_call():\n    with patch('requests.get') as mock_get:\n        mock_get.return_value.status_code = 200\n        # Test your function that uses requests"
+}
