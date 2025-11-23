@@ -112,7 +112,7 @@ The application uses Groq for its AI models. You'll need a Groq API key.
     -   In the sidebar, you can configure the **Max Fix Iterations**.
     -   Upload your `README.md` file using the first uploader.
     -   Upload the Python file containing your functions using the second uploader.
-    -   Click the **"🚀 Generate Tests & Run Feedback Loop"** button.
+    -   Click the **"Generate Tests & Run Feedback Loop"** button.
     -   Watch the progress as the system detects functions, generates tests, and runs the feedback loop.
     -   Once complete, the final results, test code, and execution history will be displayed.
 
