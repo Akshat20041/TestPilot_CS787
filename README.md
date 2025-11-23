@@ -1,8 +1,8 @@
-# 🧪 Pytest Test Generator with RAG-Powered Feedback Loop
+#  Pytest Test Generator with RAG-Powered Feedback Loop
 
 This project is a Streamlit web application that automates the generation of Pytest unit tests for Python code. It uses a multi-agent system built with LangGraph and powered by Groq AI models to create, execute, and automatically fix tests in a feedback loop. A Retrieval-Augmented Generation (RAG) component provides the system with a knowledge base of common error patterns, enabling it to make more intelligent fixes.
 
-## ✨ Features
+##  Features
 
 - **Automated Test Generation**: Upload your Python functions and a README, and the system generates `pytest`-compatible tests.
 - **Framework-Aware**: Automatically detects the web framework (`Flask`, `FastAPI`, `Django`, or `generic`) and generates tests using the correct patterns and fixtures.
@@ -12,21 +12,21 @@ This project is a Streamlit web application that automates the generation of Pyt
 - **Extensible Knowledge Base**: Easily add new error patterns and solutions by creating simple JSON files in the `examples/` directory.
 - **Modular & Scalable**: The codebase is organized into a clean, modular structure, making it easy to understand, maintain, and extend.
 
-## ⚙️ How It Works
+##  How It Works
 
 The application uses a graph-based agentic workflow built with LangGraph. Each node in the graph represents a specific agent or tool with a distinct responsibility.
 
-1.  **🔍 Detector**: Extracts function names from the uploaded README and Python code. It also detects the framework being used.
-2.  **🤖 Generator**: Takes the detected functions and generates initial unit tests. It uses framework-specific templates to ensure correctness (e.g., using the `client` fixture for Flask).
-3.  **🔗 Combiner**: Creates a single, runnable Python script by combining the user's functions with the generated tests and any necessary boilerplate (like a Flask app fixture).
-4.  **⚙️ Executor**: Runs `pytest` on the combined script and captures the results, output, and any errors in a structured JSON format.
-5.  **🔬 Critic**: Analyzes the test results.
+1.  **Detector**: Extracts function names from the uploaded README and Python code. It also detects the framework being used.
+2.  **Generator**: Takes the detected functions and generates initial unit tests. It uses framework-specific templates to ensure correctness (e.g., using the `client` fixture for Flask).
+3.  **Combiner**: Creates a single, runnable Python script by combining the user's functions with the generated tests and any necessary boilerplate (like a Flask app fixture).
+4.  **Executor**: Runs `pytest` on the combined script and captures the results, output, and any errors in a structured JSON format.
+5.  **Critic**: Analyzes the test results.
     - If all tests pass, the process is complete.
     - If tests fail, the Critic consults the RAG knowledge base to find similar, previously solved errors. It then generates specific, actionable feedback for the Generator.
-6.  **🔄 Feedback Loop**: The feedback is passed back to the Generator, which creates a new, improved set of tests. The cycle continues until the tests pass or a configurable number of iterations is met.
-7.  **📋 Reporter**: Once the loop finishes, this agent generates a final summary of the entire process, including metrics and the final generated test code.
+6.  **Feedback Loop**: The feedback is passed back to the Generator, which creates a new, improved set of tests. The cycle continues until the tests pass or a configurable number of iterations is met.
+7.  **Reporter**: Once the loop finishes, this agent generates a final summary of the entire process, including metrics and the final generated test code.
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 .
@@ -54,7 +54,7 @@ The application uses a graph-based agentic workflow built with LangGraph. Each n
 └── requirements.txt      # Python package dependencies
 ```
 
-## 🚀 Setup & Installation
+##  Setup & Installation
 
 Follow these steps to get the project running locally.
 
@@ -98,7 +98,7 @@ The application uses Groq for its AI models. You'll need a Groq API key.
     GROQ_API_KEY="your-groq-api-key-here"
     ```
 
-## ▶️ Usage
+##  Usage
 
 1.  **Run the Streamlit App**:
     Make sure you are in the project's **root directory** (`CS787`), not the `src` directory. Run the following command:
@@ -116,7 +116,7 @@ The application uses Groq for its AI models. You'll need a Groq API key.
     -   Watch the progress as the system detects functions, generates tests, and runs the feedback loop.
     -   Once complete, the final results, test code, and execution history will be displayed.
 
-## 🧠 Extending the Knowledge Base (RAG)
+##  Extending the Knowledge Base (RAG)
 
 You can improve the agent's ability to fix tests by adding to its knowledge base.
 
